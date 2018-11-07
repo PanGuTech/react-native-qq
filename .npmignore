@@ -1,0 +1,10 @@
+demo/
+example/
+node_modules/
+android/build/
+ios/build/
+.DS_Store
+.idea
+.editorconfig
+.gitignore
+*.log

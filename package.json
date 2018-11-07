@@ -1,0 +1,24 @@
+{
+  "name": "pangu@react-native-qq",
+  "version": "2.0.5",
+  "description": "QQ Login&Share support in React Native.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PanGuTech/react-native-qq.git"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "author": "tdzl2003",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PanGuTech/react-native-qq/issues"
+  },
+  "homepage": "https://github.com/PanGuTech/react-native-qq#readme"
+}
