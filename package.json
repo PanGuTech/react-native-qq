@@ -1,5 +1,5 @@
 {
-  "name": "pangu@react-native-qq",
+  "name": "@pangu/react-native-qq",
   "version": "2.0.6",
   "description": "QQ Login&Share support in React Native.",
   "main": "index.js",

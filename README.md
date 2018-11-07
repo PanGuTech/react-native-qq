@@ -7,7 +7,7 @@ React Native的QQ登录插件, react-native版本需要0.33.0及以上
 ### 首先安装npm包
 
 ```bash
-yarn add pangu@react-native-qq
+yarn add @pangu/react-native-qq
 ```
 ### 安装iOS工程
 将`node_modules/react-native-qq/ios/RCTQQAPI.xcodeproj`加入到工程中
