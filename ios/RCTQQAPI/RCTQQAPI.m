@@ -126,21 +126,21 @@ RCT_EXPORT_METHOD(logout)
 
 - (void)_shareToQQWithData:(NSDictionary *)aData scene:(int)aScene resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{
     NSString *imageUrl = aData[RCTQQShareImageUrl];
-    if (imageUrl.length && _bridge.imageLoader) {
-        CGSize size = CGSizeZero;
-        if (![aData[RCTQQShareType] isEqualToString:RCTQQShareTypeImage]) {
-            CGFloat thumbImageSize = 80;
-            size = CGSizeMake(thumbImageSize,thumbImageSize);
-        }
-        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] callback:^(NSError *error, UIImage *image) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self _shareToQQWithData:aData image:image scene:aScene resolve:resolve reject:reject];
-            });
-        }];
-    }
-    else {
+//    if (imageUrl.length && _bridge.imageLoader) {
+//        CGSize size = CGSizeZero;
+//        if (![aData[RCTQQShareType] isEqualToString:RCTQQShareTypeImage]) {
+//            CGFloat thumbImageSize = 80;
+//            size = CGSizeMake(thumbImageSize,thumbImageSize);
+//        }
+//        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] callback:^(NSError *error, UIImage *image) {
+//            dispatch_async(dispatch_get_main_queue(), ^{
+//                [self _shareToQQWithData:aData image:image scene:aScene resolve:resolve reject:reject];
+//            });
+//        }];
+//    }
+//    else {
         [self _shareToQQWithData:aData image:nil scene:aScene resolve:resolve reject:reject];
-    }
+//    }
 }
 
 
@@ -155,6 +155,9 @@ RCT_EXPORT_METHOD(logout)
     NSString *flashUrl = aData[@"flashUrl"];
 
     QQApiObject *message = nil;
+    
+//    NSLog(@"aData:::: %@", aData);
+
 
     if (type.length <=0 || [type isEqualToString: RCTQQShareTypeNews]) {
         message = [QQApiNewsObject
@@ -166,12 +169,26 @@ RCT_EXPORT_METHOD(logout)
     else if ([type isEqualToString: RCTQQShareTypeText]) {
         message = [QQApiTextObject objectWithText:description];
     }
-    else if ([type isEqualToString: RCTQQShareTypeImage]) {
-        NSData *imgData = UIImageJPEGRepresentation(image, 1);
+    else if ([type isEqualToString: @"imageBase64"]) {
+        NSString *base64 = aData[RCTQQShareImageUrl];
+        NSData *image   = [[NSData alloc] initWithBase64EncodedString:base64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        UIImage *_decodedImage      = [UIImage imageWithData:image];
+        
+        //分享图片
+        UIImage *_shareImage      = [UIImage imageNamed:@"share.png"];
+        float scaleSize =_decodedImage.size.width /_shareImage.size.width;
+        UIImage *_scaleImage      = [self scaleImage:_shareImage toScale:scaleSize];
+        
+        UIImage *composeImage = [self _composeImg:_decodedImage ShareImage:_scaleImage];
+        
+        
+        NSData *imgData = UIImageJPEGRepresentation(composeImage, 1);
+
         message = [QQApiImageObject objectWithData:imgData
                                   previewImageData:imgData
                                              title:title
                                        description:description];
+        
     }
     else if ([type isEqualToString: RCTQQShareTypeAudio]) {
         QQApiAudioObject *audioObj = [QQApiAudioObject objectWithURL:[NSURL URLWithString:webpageUrl]
@@ -297,5 +314,35 @@ RCT_EXPORT_METHOD(logout)
 - (void)tencentDidNotNetWork
 {
 }
+
+    //拼接图片
+-(UIImage *)_composeImg :(UIImage *)_decodedImage ShareImage:(UIImage *)_decodedImage1 {
+
+    CGImageRef imgRef = _decodedImage.CGImage;
+    CGFloat w = CGImageGetWidth(imgRef);
+    CGFloat h = CGImageGetHeight(imgRef);
+    
+    CGImageRef imgRef1 = _decodedImage1.CGImage;
+    CGFloat w1 = CGImageGetWidth(imgRef1);
+    CGFloat h1 = CGImageGetHeight(imgRef1);
+    
+    //以image，image1图大小为画布创建上下文
+    UIGraphicsBeginImageContext(CGSizeMake(w, h+h1));
+    [_decodedImage drawInRect:CGRectMake(0, 0, w, h)];//先把_decodedImage 画到上下文中
+    [_decodedImage1 drawInRect:CGRectMake(0, h, w1, h1)];//再把_decodedImage1放在上下文中
+    UIImage *resultImg = UIGraphicsGetImageFromCurrentImageContext();//从当前上下文中获得最终图片
+    UIGraphicsEndImageContext();//关闭上下文
+    return resultImg;
+}
+
+//缩小图片到目标尺寸
+- (UIImage *)scaleImage:(UIImage *)image toScale:(float)scaleSize{
+    UIGraphicsBeginImageContext(CGSizeMake(image.size.width * scaleSize, image.size.height * scaleSize));
+    [image drawInRect:CGRectMake(0, 0, image.size.width * scaleSize, image.size.height * scaleSize)];
+    UIImage *scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return scaledImage;
+}
+
 
 @end
