@@ -126,21 +126,21 @@ RCT_EXPORT_METHOD(logout)
 
 - (void)_shareToQQWithData:(NSDictionary *)aData scene:(int)aScene resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject{
     NSString *imageUrl = aData[RCTQQShareImageUrl];
-//    if (imageUrl.length && _bridge.imageLoader) {
+    if (imageUrl.length && _bridge.imageLoader) {
 //        CGSize size = CGSizeZero;
 //        if (![aData[RCTQQShareType] isEqualToString:RCTQQShareTypeImage]) {
 //            CGFloat thumbImageSize = 80;
 //            size = CGSizeMake(thumbImageSize,thumbImageSize);
 //        }
-//        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] callback:^(NSError *error, UIImage *image) {
-//            dispatch_async(dispatch_get_main_queue(), ^{
-//                [self _shareToQQWithData:aData image:image scene:aScene resolve:resolve reject:reject];
-//            });
-//        }];
-//    }
-//    else {
+        [_bridge.imageLoader loadImageWithURLRequest:[RCTConvert NSURLRequest:imageUrl] callback:^(NSError *error, UIImage *image) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self _shareToQQWithData:aData image:image scene:aScene resolve:resolve reject:reject];
+            });
+        }];
+    }
+    else {
         [self _shareToQQWithData:aData image:nil scene:aScene resolve:resolve reject:reject];
-//    }
+    }
 }
 
 
@@ -155,7 +155,7 @@ RCT_EXPORT_METHOD(logout)
     NSString *flashUrl = aData[@"flashUrl"];
 
     QQApiObject *message = nil;
-    
+
 //    NSLog(@"aData:::: %@", aData);
 
 
@@ -173,22 +173,22 @@ RCT_EXPORT_METHOD(logout)
         NSString *base64 = aData[RCTQQShareImageUrl];
         NSData *image   = [[NSData alloc] initWithBase64EncodedString:base64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
         UIImage *_decodedImage      = [UIImage imageWithData:image];
-        
+
         //分享图片
         UIImage *_shareImage      = [UIImage imageNamed:@"share.png"];
         float scaleSize =_decodedImage.size.width /_shareImage.size.width;
         UIImage *_scaleImage      = [self scaleImage:_shareImage toScale:scaleSize];
-        
+
         UIImage *composeImage = [self _composeImg:_decodedImage ShareImage:_scaleImage];
-        
-        
+
+
         NSData *imgData = UIImageJPEGRepresentation(composeImage, 1);
 
         message = [QQApiImageObject objectWithData:imgData
                                   previewImageData:imgData
                                              title:title
                                        description:description];
-        
+
     }
     else if ([type isEqualToString: RCTQQShareTypeAudio]) {
         QQApiAudioObject *audioObj = [QQApiAudioObject objectWithURL:[NSURL URLWithString:webpageUrl]
@@ -257,13 +257,13 @@ RCT_EXPORT_METHOD(logout)
 #pragma mark - qq delegate
 - (void)onReq:(QQBaseReq *)req
 {
-    
+
 }
 
 - (void)onResp:(QQBaseResp *)resp
 {
     if ([resp isKindOfClass:[SendMessageToQQResp class]]) {
-        
+
     }
     NSMutableDictionary *body = @{@"type":@"QQShareResponse"}.mutableCopy;
     body[@"errMsg"] = resp.errorDescription;
@@ -275,13 +275,13 @@ RCT_EXPORT_METHOD(logout)
     }
     body[@"result"] =resp.result;
     body[@"extendInfo"] =resp.extendInfo;
-    
+
     [self.bridge.eventDispatcher sendAppEventWithName:@"QQ_Resp" body:body];
 }
 
 - (void)isOnlineResponse:(NSDictionary *)response
 {
-    
+
 }
 
 #pragma mark - oauth delegate
@@ -308,7 +308,7 @@ RCT_EXPORT_METHOD(logout)
         body[@"errMsg"] = @"login failed";
     }
     [self.bridge.eventDispatcher sendAppEventWithName:@"QQ_Resp" body:body];
-    
+
 }
 
 - (void)tencentDidNotNetWork
@@ -321,11 +321,11 @@ RCT_EXPORT_METHOD(logout)
     CGImageRef imgRef = _decodedImage.CGImage;
     CGFloat w = CGImageGetWidth(imgRef);
     CGFloat h = CGImageGetHeight(imgRef);
-    
+
     CGImageRef imgRef1 = _decodedImage1.CGImage;
     CGFloat w1 = CGImageGetWidth(imgRef1);
     CGFloat h1 = CGImageGetHeight(imgRef1);
-    
+
     //以image，image1图大小为画布创建上下文
     UIGraphicsBeginImageContext(CGSizeMake(w, h+h1));
     [_decodedImage drawInRect:CGRectMake(0, 0, w, h)];//先把_decodedImage 画到上下文中
